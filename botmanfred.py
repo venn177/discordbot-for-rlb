@@ -1,29 +1,29 @@
 # coding=utf8
 
 import discord
-import sys
-import random
 import importlib
 import os
-import time
-import os.path
+import random
 import re
+import sys
+import time
 from datetime import datetime
-from pymarkovchain import MarkovChain
 from glob import glob
+from pymarkovchain import MarkovChain
 from random import randint
 
 bot = discord.Client()
-bot.login('', '')
+bot.login('=', '')
 
 #importlib.import_module("plugins")
 mc = MarkovChain()
+currentDirectory = sys.path[0] + "\\"
 try:
-	with open(r'C:\\Python35\\discordbot-for-rlb\\logpruned.txt', 'r', encoding="utf8") as log:
+	with open(currentDirectory + "logpruned.txt", 'r', 'w', encoding="utf8") as log:
 		thelog = log.read()
-except Exception:
-	print("Couldn't load the database logpruned.txt!")
-mc.generateDatabase(thelog)
+	mc.generateDatabase(thelog)
+except Exception as e:
+	print("Issue with markov database: {0}".format(e))
 
 #for plugin in glob("C:/Python35/discordbot/plugins/[!_]*.py"):
 #	module = 'plugins.' + plugin[31:-3]
@@ -41,9 +41,9 @@ def on_message(message):
 	botUserCheck = str(bot.user)
 	if message.author == bot.user:
 		return
-	with open("C:\Python35\discordbot-for-rlb\log.txt", "a", encoding="utf8") as myfile:
+	with open(currentDirectory + "log.txt", "a", encoding="utf8") as myfile:
 		myfile.write(currentTime + str(message.author) + ': ' + message.content + '\n')
-	with open("C:\Python35\discordbot-for-rlb\logpruned.txt", "a", encoding="utf8") as myfile:
+	with open(currentDirectory + "logpruned.txt", "a", encoding="utf8") as myfile:
 		myfile.write(message.content + ' ')
 	messageCheck = message.content.lower()
 	if message.content.startswith('!roll'):
@@ -84,8 +84,19 @@ def roll(messageCheck, message):
 		bot.send_message(message.channel, 'Format has to be in XdY!')
 		return
 
-	result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-	bot.send_message(message.channel, result)
+	if rolls > 100 or limit > 100:
+		bot.send_message(message.channel, "Jesus fucking christ, that's too much rolling you spamming motherfucker.")
+		return
+
+	dicerolls = []
+	result = ""
+
+	for n in range(0, rolls):
+		dicerolls.append(randint(1, limit))
+
+	result += " = %s" % sum(dicerolls)
+
+	bot.send_message(message.channel, str(dicerolls) + result)
 	return
 
 def dustydice(messageCheck, message):
